@@ -1,0 +1,151 @@
+---
+title: "Design and Analysis of Online Experiments Homework 4: Causal Inference using Selection on Observables Design (SOO)"
+format: html
+editor: visual
+---
+
+## Introduction
+In this exercise, I implement various estimators under the selection on observables (SOO) design using a simulated data set. 
+
+## Estimators
+
+- Estimator 0: Unadjusted means
+- Estimator 1.1: Regression adjustment with full control variables
+- Estimator 1.2: Regression adjustment with partial control variables
+- Estimator 2.1: Conditioning on propensity score with full control variables
+- Estimator 2.2: Conditioning on propensity score with partial control variables
+- Estimator 3.1: Re-weighting based on propensity score with full control variables
+- Estimator 3.2: Re-weighting based on propensity score with partial control variables
+- Estimator 4.1: Blocking based on propensity score with full control variables
+- Estimator 4.2: Blocking based on propensity score with partial control variables
+- Estimator 5.1: Doubly robust estimator with full control variables
+- Estimator 5.2: Doubly robust estimator with partial control variables
+
+## Bootstrap
+Draw 200 bootstrapped samples (with replacement) of size 500 from this simulated dataset (this will mimic the process of random sampling from a population) and estimate the average treatment effect (ATE) using the estimators for each bootstrapped sample.
+
+```{r, message=FALSE, warning=FALSE, error=FALSE}
+library(dplyr)
+library(tidyr)
+library(boot)
+
+# Function to perform bootstrapping
+bootstrap_and_run_estimator <- function(data, estimator_function, n_bootstrap = 200, sample_size = 500) {
+  results <- replicate(n_bootstrap, {
+    # Sample with replacement
+    sample_data <- data[sample(nrow(data), sample_size, replace = TRUE), ]
+    # Apply estimator_0
+    estimator_function(sample_data)
+  })
+  return(results)
+}
+```
+
+## Load Data
+```{r, message=FALSE, warning=FALSE, error=FALSE}
+data <- read.csv("homework4.csv")
+```
+
+## Run Estimators
+```{r, message=FALSE, warning=FALSE, error=FALSE}
+source("Estimator_Functions.R")
+
+set.seed(123)  # for reproducibility
+
+# Estimator 0
+results_0 <- bootstrap_and_run_estimator(data, estimator_0)
+mean_ate_0 <- mean(results_0)
+ci_0 <- quantile(results_0, c(0.025, 0.975))
+
+# Estimator 1.1
+results_1_1 <- bootstrap_and_run_estimator(data, estimator_1_1)
+mean_ate_1_1 <- mean(results_1_1)
+ci_1_1 <- quantile(results_1_1, c(0.025, 0.975))
+
+# Estimator 1.2
+results_1_2 <- bootstrap_and_run_estimator(data, estimator_1_2)
+mean_ate_1_2 <- mean(results_1_2)
+ci_1_2 <- quantile(results_1_2, c(0.025, 0.975))
+
+# Estimator 2.1
+results_2_1 <- bootstrap_and_run_estimator(data, estimator_2_1)
+mean_ate_2_1 <- mean(results_2_1)
+ci_2_1 <- quantile(results_2_1, c(0.025, 0.975))
+
+# Estimator 2.2
+results_2_2 <- bootstrap_and_run_estimator(data, estimator_2_2)
+mean_ate_2_2 <- mean(results_2_2)
+ci_2_2 <- quantile(results_2_2, c(0.025, 0.975))
+
+# Estimator 3.1
+results_3_1 <- bootstrap_and_run_estimator(data, estimator_3_1)
+mean_ate_3_1 <- mean(results_3_1)
+ci_3_1 <- quantile(results_3_1, c(0.025, 0.975))
+
+# Estimator 3.2
+results_3_2 <- bootstrap_and_run_estimator(data, estimator_3_2)
+mean_ate_3_2 <- mean(results_3_2)
+ci_3_2 <- quantile(results_3_2, c(0.025, 0.975))
+
+# Estimator 4.1
+results_4_1 <- bootstrap_and_run_estimator(data, estimator_4_1)
+mean_ate_4_1 <- mean(results_4_1)
+ci_4_1 <- quantile(results_4_1, c(0.025, 0.975))
+
+# Estimator 4.2
+results_4_2 <- bootstrap_and_run_estimator(data, estimator_4_2)
+mean_ate_4_2 <- mean(results_4_2)
+ci_4_2 <- quantile(results_4_2, c(0.025, 0.975))
+
+# Estimator 5.1
+results_5_1 <- bootstrap_and_run_estimator(data, estimator_5_1)
+mean_ate_5_1 <- mean(results_5_1)
+ci_5_1 <- quantile(results_5_1, c(0.025, 0.975))
+
+# Estimator 5.2
+results_5_2 <- bootstrap_and_run_estimator(data, estimator_5_2)
+mean_ate_5_2 <- mean(results_5_1)
+ci_5_2 <- quantile(results_5_1, c(0.025, 0.975))
+```
+
+
+```{r, message=FALSE, warning=FALSE, error=FALSE}
+library(ggplot2)
+
+# Optional: Plot the distribution of ATE estimates
+hist(results_0, main = "Distribution of ATE by Estimator",
+     xlab = "ATE", breaks = 30)
+
+```
+
+
+## Problem 1: Create a table using the following template for all the estimators described above
+
+| Estimator | Mean of ATE | 95% CI of ATE |
+|---------|:-----|------:|:------:|
+| Estimator 0: Unadjusted means | 1.40465 | 0.996 - 1.823 | 
+| Estimator 1.1: Regression adjustment with full control variables | 123 | 123 |
+| Estimator 1.2: Regression adjustment with partial control variables  | 123 | 123 |
+| Estimator 2.1: Conditioning on propensity score with full control variables | 123 | 123 | 
+| Estimator 2.2: Conditioning on propensity score with partial control variables | 123 | 123 |
+| Estimator 3.1: Re-weighting based on propensity score with full control variables | 123 | 123 |
+| Estimator 3.2: Re-weighting based on propensity score with partial control variables | 123 | 123 | 
+| Estimator 4.1: Blocking based on propensity score with full control variables | 123 | 123 |
+| Estimator 4.2: Blocking based on propensity score with partial control variables | 123 | 123 |
+| Estimator 5.1: Doubly robust estimator with full control variables | 123 | 123 | 
+| Estimator 5.2: Doubly robust estimator with partial control variables | 123 | 123 |
+
+## Problem 2: Let’s look at cases when the model is being correctly specified. Plot the ATE estimates distribution for Estimator 0, 1.1, 2.1, 3.1, 4.1, 5.1 in one graph and report your findings.
+```{r}
+#TODO
+```
+
+## Problem 3: Let’s look at cases when the model is being incorrectly specified. Plot the ATE estimates distribution for Estimator 0, 1.2, 2.2, 3.2, 4.2, 5.2 in one graph and report your findings.
+```{r}
+#TODO
+```
+
+## Problem 4: Compare the results between problem 2 and problem 3. Comments on the impact of the violation of SOO design assumptions.
+```{r}
+#TODO
+```
