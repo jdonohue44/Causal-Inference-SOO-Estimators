@@ -1,7 +1,7 @@
 # Causal Inference Selection of Observables (SOO) Estimators
 
 ## Introduction
-In this exercise, I implement various estimators under the selection on observables (SOO) design using a simulated data set. 
+In this exercise, I implement various estimators under the selection on observables (SOO) design using a simulated data set. The results emphasize the importance of meeting SOO assumptions for observational causal inference. When the assumption is violated, we observe biased and less precise estimates of the ATE. However, more sophisticated methods like doubly robust estimation can help mitigate some of these issues, providing more reliable estimates even when the model is not perfectly specified. This underscores the importance of careful consideration of potential confounders and the use of appropriate statistical techniques in observational causal inference studies.
 
 ## Estimators
 - Estimator 0: Unadjusted means
