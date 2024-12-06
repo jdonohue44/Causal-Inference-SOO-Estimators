@@ -98,7 +98,7 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 
 <section id="introduction" class="level2">
 <h2 class="anchored" data-anchor-id="introduction">Introduction</h2>
-<p>In this exercise, I implement various estimators under the selection on observables (SOO) design using a simulated data set.</p>
+<p>In this exercise, I implement various estimators under the selection on observables (SOO) design using a simulated data set. The results emphasize the importance of meeting SOO assumptions for observational causal inference. When the assumption is violated, we observe biased and less precise estimates of the ATE. However, more sophisticated methods like doubly robust estimation can help mitigate some of these issues, providing more reliable estimates even when the model is not perfectly specified. This underscores the importance of careful consideration of potential confounders and the use of appropriate statistical techniques in observational causal inference studies.</p>
 </section>
 <section id="estimators" class="level2">
 <h2 class="anchored" data-anchor-id="estimators">Estimators</h2>
@@ -123,17 +123,18 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(dplyr)</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyr)</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(boot)</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to perform bootstrapping</span></span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>bootstrap_and_run_estimator <span class="ot">&lt;-</span> <span class="cf">function</span>(data, estimator_function, <span class="at">n_bootstrap =</span> <span class="dv">200</span>, <span class="at">sample_size =</span> <span class="dv">500</span>) {</span>
-<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">replicate</span>(n_bootstrap, {</span>
-<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sample with replacement</span></span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    sample_data <span class="ot">&lt;-</span> data[<span class="fu">sample</span>(<span class="fu">nrow</span>(data), sample_size, <span class="at">replace =</span> <span class="cn">TRUE</span>), ]</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apply estimator_0</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="fu">estimator_function</span>(sample_data)</span>
-<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>  })</span>
-<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(results)</span>
-<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(stats)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Function to perform bootstrapping</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>bootstrap_and_run_estimator <span class="ot">&lt;-</span> <span class="cf">function</span>(data, estimator_function, <span class="at">n_bootstrap =</span> <span class="dv">200</span>, <span class="at">sample_size =</span> <span class="dv">500</span>) {</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  results <span class="ot">&lt;-</span> <span class="fu">replicate</span>(n_bootstrap, {</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Sample with replacement</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>    sample_data <span class="ot">&lt;-</span> data[<span class="fu">sample</span>(<span class="fu">nrow</span>(data), sample_size, <span class="at">replace =</span> <span class="cn">TRUE</span>), ]</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>    <span class="co"># Apply estimator_0</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>    <span class="fu">estimator_function</span>(sample_data)</span>
+<span id="cb1-13"><a href="#cb1-13" aria-hidden="true" tabindex="-1"></a>  })</span>
+<span id="cb1-14"><a href="#cb1-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">return</span>(results)</span>
+<span id="cb1-15"><a href="#cb1-15" aria-hidden="true" tabindex="-1"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
 <section id="load-data" class="level2">
@@ -201,26 +202,12 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <span id="cb3-54"><a href="#cb3-54" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-55"><a href="#cb3-55" aria-hidden="true" tabindex="-1"></a><span class="co"># Estimator 5.2</span></span>
 <span id="cb3-56"><a href="#cb3-56" aria-hidden="true" tabindex="-1"></a>results_5_2 <span class="ot">&lt;-</span> <span class="fu">bootstrap_and_run_estimator</span>(data, estimator_5_2)</span>
-<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>mean_ate_5_2 <span class="ot">&lt;-</span> <span class="fu">mean</span>(results_5_1)</span>
-<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>ci_5_2 <span class="ot">&lt;-</span> <span class="fu">quantile</span>(results_5_1, <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co"># Optional: Plot the distribution of ATE estimates</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="fu">hist</span>(results_0, <span class="at">main =</span> <span class="st">"Distribution of ATE by Estimator"</span>,</span>
-<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>     <span class="at">xlab =</span> <span class="st">"ATE"</span>, <span class="at">breaks =</span> <span class="dv">30</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div>
-<figure class="figure">
-<p><img src="HW_4_Quarto_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
-</figure>
-</div>
-</div>
+<span id="cb3-57"><a href="#cb3-57" aria-hidden="true" tabindex="-1"></a>mean_ate_5_2 <span class="ot">&lt;-</span> <span class="fu">mean</span>(results_5_2)</span>
+<span id="cb3-58"><a href="#cb3-58" aria-hidden="true" tabindex="-1"></a>ci_5_2 <span class="ot">&lt;-</span> <span class="fu">quantile</span>(results_5_2, <span class="fu">c</span>(<span class="fl">0.025</span>, <span class="fl">0.975</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 </section>
-<section id="problem-1-create-a-table-using-the-following-template-for-all-the-estimators-described-above" class="level2">
-<h2 class="anchored" data-anchor-id="problem-1-create-a-table-using-the-following-template-for-all-the-estimators-described-above">Problem 1: Create a table using the following template for all the estimators described above</h2>
+<section id="problem-1-resulting-mean-average-treatment-effect-ate-and-confidence-interval-ci-of-estimators" class="level2">
+<h2 class="anchored" data-anchor-id="problem-1-resulting-mean-average-treatment-effect-ate-and-confidence-interval-ci-of-estimators">Problem 1: Resulting Mean Average Treatment Effect (ATE) and Confidence Interval (CI) of Estimators</h2>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 30%">
@@ -239,93 +226,159 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <tbody>
 <tr class="odd">
 <td>Estimator 0: Unadjusted means</td>
-<td style="text-align: left;">1.40465</td>
-<td style="text-align: right;">0.996 - 1.823</td>
+<td style="text-align: left;">1.4046502</td>
+<td style="text-align: right;">0.9961504, 1.8232516</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="even">
 <td>Estimator 1.1: Regression adjustment with full control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.0457265</td>
+<td style="text-align: right;">0.6028016, 1.5359891</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
 <td>Estimator 1.2: Regression adjustment with partial control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.3253183</td>
+<td style="text-align: right;">0.7924014, 1.8376732</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="even">
 <td>Estimator 2.1: Conditioning on propensity score with full control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.0342949</td>
+<td style="text-align: right;">0.4903937, 1.5010041</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
 <td>Estimator 2.2: Conditioning on propensity score with partial control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.3138431</td>
+<td style="text-align: right;">0.9086667, 1.7201993</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="even">
 <td>Estimator 3.1: Re-weighting based on propensity score with full control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.0529586</td>
+<td style="text-align: right;">0.4769803, 1.6031363</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
 <td>Estimator 3.2: Re-weighting based on propensity score with partial control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.2812937</td>
+<td style="text-align: right;">0.8361342, 1.7160197</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="even">
 <td>Estimator 4.1: Blocking based on propensity score with full control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.050399</td>
+<td style="text-align: right;">0.4096993, 1.5765273</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
 <td>Estimator 4.2: Blocking based on propensity score with partial control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.3132305</td>
+<td style="text-align: right;">0.751174, 1.8085185</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="even">
 <td>Estimator 5.1: Doubly robust estimator with full control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.0660079</td>
+<td style="text-align: right;">0.5474586, 1.532347</td>
 <td style="text-align: center;"></td>
 </tr>
 <tr class="odd">
 <td>Estimator 5.2: Doubly robust estimator with partial control variables</td>
-<td style="text-align: left;">123</td>
-<td style="text-align: right;">123</td>
+<td style="text-align: left;">1.0300482</td>
+<td style="text-align: right;">0.5898282, 1.4623028</td>
 <td style="text-align: center;"></td>
 </tr>
 </tbody>
 </table>
+</section>
+<section id="problem-2-plot-of-ate-estimate-distributions-for-correctly-specified-estimators-0-1.2-2.2-3.2-4.2-5.2." class="level2">
+<h2 class="anchored" data-anchor-id="problem-2-plot-of-ate-estimate-distributions-for-correctly-specified-estimators-0-1.2-2.2-3.2-4.2-5.2.">Problem 2: Plot of ATE estimate distributions for Correctly Specified Estimators 0, 1.2, 2.2, 3.2, 4.2, 5.2.</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_0 =</span> results_0,</span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_1_1 =</span> results_1_1,</span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_2_1 =</span> results_2_1,</span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_3_1 =</span> results_3_1,</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_4_1 =</span> results_4_1,</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_5_1 =</span> results_5_1</span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"estimator"</span>, <span class="at">values_to =</span> <span class="st">"ate"</span>)</span>
+<span id="cb4-12"><a href="#cb4-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-13"><a href="#cb4-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the plot</span></span>
+<span id="cb4-14"><a href="#cb4-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(plot_data, <span class="fu">aes</span>(<span class="at">x =</span> ate, <span class="at">fill =</span> estimator)) <span class="sc">+</span></span>
+<span id="cb4-15"><a href="#cb4-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb4-16"><a href="#cb4-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb4-17"><a href="#cb4-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of ATE Estimates (Correctly Specified Models)"</span>,</span>
+<span id="cb4-18"><a href="#cb4-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Average Treatment Effect (ATE)"</span>,</span>
+<span id="cb4-19"><a href="#cb4-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Density"</span>) <span class="sc">+</span></span>
+<span id="cb4-20"><a href="#cb4-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb4-21"><a href="#cb4-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">"Set2"</span>) <span class="sc">+</span></span>
+<span id="cb4-22"><a href="#cb4-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="HW_4_Quarto_files/figure-html/unnamed-chunk-4-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
-<section id="problem-2-lets-look-at-cases-when-the-model-is-being-correctly-specified.-plot-the-ate-estimates-distribution-for-estimator-0-1.1-2.1-3.1-4.1-5.1-in-one-graph-and-report-your-findings." class="level2">
-<h2 class="anchored" data-anchor-id="problem-2-lets-look-at-cases-when-the-model-is-being-correctly-specified.-plot-the-ate-estimates-distribution-for-estimator-0-1.1-2.1-3.1-4.1-5.1-in-one-graph-and-report-your-findings.">Problem 2: Let’s look at cases when the model is being correctly specified. Plot the ATE estimates distribution for Estimator 0, 1.1, 2.1, 3.1, 4.1, 5.1 in one graph and report your findings.</h2>
+<section id="problem-3-plot-of-ate-estimate-distributions-for-incorrectly-specified-estimators-0-1.2-2.2-3.2-4.2-5.2." class="level2">
+<h2 class="anchored" data-anchor-id="problem-3-plot-of-ate-estimate-distributions-for-incorrectly-specified-estimators-0-1.2-2.2-3.2-4.2-5.2.">Problem 3: Plot of ATE estimate distributions for Incorrectly Specified Estimators 0, 1.2, 2.2, 3.2, 4.2, 5.2.</h2>
 <div class="cell">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(ggplot2)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a>plot_data <span class="ot">&lt;-</span> <span class="fu">tibble</span>(</span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_0 =</span> results_0,</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_1_2 =</span> results_1_2,</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_2_2 =</span> results_2_2,</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_3_2 =</span> results_3_2,</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_4_2 =</span> results_4_2,</span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">estimator_5_2 =</span> results_5_2</span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a>) <span class="sc">|&gt;</span></span>
+<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">pivot_longer</span>(<span class="at">cols =</span> <span class="fu">everything</span>(), <span class="at">names_to =</span> <span class="st">"estimator"</span>, <span class="at">values_to =</span> <span class="st">"ate"</span>)</span>
+<span id="cb5-12"><a href="#cb5-12" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-13"><a href="#cb5-13" aria-hidden="true" tabindex="-1"></a><span class="co"># Create the plot</span></span>
+<span id="cb5-14"><a href="#cb5-14" aria-hidden="true" tabindex="-1"></a><span class="fu">ggplot</span>(plot_data, <span class="fu">aes</span>(<span class="at">x =</span> ate, <span class="at">fill =</span> estimator)) <span class="sc">+</span></span>
+<span id="cb5-15"><a href="#cb5-15" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_density</span>(<span class="at">alpha =</span> <span class="fl">0.5</span>) <span class="sc">+</span></span>
+<span id="cb5-16"><a href="#cb5-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="at">xintercept =</span> <span class="dv">1</span>, <span class="at">linetype =</span> <span class="st">"dashed"</span>, <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb5-17"><a href="#cb5-17" aria-hidden="true" tabindex="-1"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Distribution of ATE Estimates (Incorrectly Specified Models)"</span>,</span>
+<span id="cb5-18"><a href="#cb5-18" aria-hidden="true" tabindex="-1"></a>       <span class="at">x =</span> <span class="st">"Average Treatment Effect (ATE)"</span>,</span>
+<span id="cb5-19"><a href="#cb5-19" aria-hidden="true" tabindex="-1"></a>       <span class="at">y =</span> <span class="st">"Density"</span>) <span class="sc">+</span></span>
+<span id="cb5-20"><a href="#cb5-20" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb5-21"><a href="#cb5-21" aria-hidden="true" tabindex="-1"></a>  <span class="fu">scale_fill_brewer</span>(<span class="at">palette =</span> <span class="st">"Set2"</span>) <span class="sc">+</span></span>
+<span id="cb5-22"><a href="#cb5-22" aria-hidden="true" tabindex="-1"></a>  <span class="fu">theme</span>(<span class="at">legend.position =</span> <span class="st">"bottom"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<div>
+<figure class="figure">
+<p><img src="HW_4_Quarto_files/figure-html/unnamed-chunk-5-1.png" class="img-fluid figure-img" width="672"></p>
+</figure>
+</div>
+</div>
 </div>
 </section>
-<section id="problem-3-lets-look-at-cases-when-the-model-is-being-incorrectly-specified.-plot-the-ate-estimates-distribution-for-estimator-0-1.2-2.2-3.2-4.2-5.2-in-one-graph-and-report-your-findings." class="level2">
-<h2 class="anchored" data-anchor-id="problem-3-lets-look-at-cases-when-the-model-is-being-incorrectly-specified.-plot-the-ate-estimates-distribution-for-estimator-0-1.2-2.2-3.2-4.2-5.2-in-one-graph-and-report-your-findings.">Problem 3: Let’s look at cases when the model is being incorrectly specified. Plot the ATE estimates distribution for Estimator 0, 1.2, 2.2, 3.2, 4.2, 5.2 in one graph and report your findings.</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<section id="problem-4-compare-the-results-between-the-correctly-specified-models-and-the-incorrectly-specified-models.-what-is-learned-about-the-impact-of-the-violation-of-soo-design-assumptions" class="level2">
+<h2 class="anchored" data-anchor-id="problem-4-compare-the-results-between-the-correctly-specified-models-and-the-incorrectly-specified-models.-what-is-learned-about-the-impact-of-the-violation-of-soo-design-assumptions">Problem 4: Compare the results between the correctly specified models and the incorrectly specified models. What is learned about the impact of the violation of SOO design assumptions?</h2>
+<section id="bias" class="level3">
+<h3 class="anchored" data-anchor-id="bias">Bias</h3>
+<p>When SOO is violated (i.e., not all relevant confounders are controlled for), we see substantial bias in the ATE estimates. This is evident in the overestimation of ATE in partially specified models. Correctly specified models (1.1, 2.1, 3.1, 4.1, 5.1) consistently produce mean ATE estimates closer to the true ATE of 1. Incorrectly specified models (0, 1.2, 2.2, 3.2, 4.2) tend to overestimate the ATE, with means further from 1.The unadjusted means (Estimator 0) show significant bias, highlighting the importance of controlling for confounding variables.</p>
 </section>
-<section id="problem-4-compare-the-results-between-problem-2-and-problem-3.-comments-on-the-impact-of-the-violation-of-soo-design-assumptions." class="level2">
-<h2 class="anchored" data-anchor-id="problem-4-compare-the-results-between-problem-2-and-problem-3.-comments-on-the-impact-of-the-violation-of-soo-design-assumptions.">Problem 4: Compare the results between problem 2 and problem 3. Comments on the impact of the violation of SOO design assumptions.</h2>
-<div class="cell">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co">#TODO</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+<section id="impact-of-soo-violation" class="level3">
+<h3 class="anchored" data-anchor-id="impact-of-soo-violation">Impact of SOO violation</h3>
+<p>Partial control variable models (1.2, 2.2, 3.2, 4.2) consistently overestimate the ATE, demonstrating the impact of omitted variable bias when the SOO assumption is violated.</p>
+</section>
+<section id="robustness-of-methods" class="level3">
+<h3 class="anchored" data-anchor-id="robustness-of-methods">Robustness of methods</h3>
+<p>Propensity score methods (2.1, 3.1, 4.1) perform well when correctly specified but are sensitive to misspecification. The doubly robust estimator (5.2) performs notably well even when partially misspecified, with a mean ATE (1.0300482) very close to the correctly specified version (5.1: 1.0660079).</p>
+</section>
+</section>
+<section id="conclusion" class="level2">
+<h2 class="anchored" data-anchor-id="conclusion">Conclusion</h2>
+<p>The results emphasize the importance of meeting the Selection of Observables (SOO) assumptions for observational causal inference. When the assumption is violated, we observe biased and less precise estimates of the ATE. However, more sophisticated methods like doubly robust estimation can help mitigate some of these issues, providing more reliable estimates even when the model is not perfectly specified. This underscores the importance of careful consideration of potential confounders and the use of appropriate statistical techniques in observational causal inference studies.</p>
 </section>
 
 </main>
